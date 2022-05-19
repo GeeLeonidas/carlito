@@ -35,7 +35,7 @@ class CarlitoBot(discord.Client):
         cmd = cmd_args.pop(0)
         
         if cmd == 'g.ee':
-            pass
+            pass # Debug command
 
 
     async def on_ready(self):
@@ -58,23 +58,23 @@ class CarlitoBot(discord.Client):
         
         if randrange(0, 75) == 0:
             async with message.channel.typing():
-                left = await pick_message(message.channel, ignored_id=self.user.id)
-                right = await pick_message(message.channel, ignored_id=self.user.id)
+                main = await pick_message(message.channel, ignored_id=self.user.id)
+                other = await pick_message(message.channel, ignored_id=self.user.id)
                 
-                main_words = left.content.split(' ')
-                other_words = right.content.split(' ')
+                main_words = main.content.split(' ')
+                other_words = other.content.split(' ')
                 shuffle(other_words)
                 
                 word_ratio = len(other_words) / len(main_words)
                 for i in range(len(other_words)):
                     main_words.insert(1 + int(i / word_ratio), other_words[i])
                 await message.channel.send(' '.join(main_words))
-                print('Sent a mashup message on `{0}`'.format(message.channel))
+                print('Sent a mashup message on #{0}'.format(message.channel))
         elif self.user.mentioned_in(message):
             async with message.channel.typing():
                 old_message = await pick_message(message.channel, ignored_id=self.user.id)
                 await message.channel.send(old_message.content)
-                print('Sent an response message on `{0}`'.format(message.channel))
+                print('Sent a response message on #{0}`'.format(message.channel))
 
 
 if __name__ == "__main__":
