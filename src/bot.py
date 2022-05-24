@@ -1,6 +1,7 @@
 import discord
 from random import randrange, shuffle
 import datetime as dt
+from time import monotonic
 
 
 def pick_datetime() -> dt.datetime:
@@ -27,15 +28,54 @@ async def pick_message(channel: discord.TextChannel, ignored_id: int) -> discord
 
 
 class CarlitoBot(discord.Client):
+    def __init__(self, *, loop=None, **options):
+        super().__init__(loop=loop, **options)
+
+
     async def handle_command(self, message):
         if not message.content.startswith('g.'):
+            return
+        if message.author.id != 163379389164290049:
             return
         
         cmd_args = message.content.split(' ')
         cmd = cmd_args.pop(0)
         
         if cmd == 'g.ee':
-            pass # Debug command
+            photo_gif = 'https://tenor.com/view/camera-taking-pictures-gif-9980532'
+            creation_time = dt.datetime.fromisoformat('2022-05-18 01:00:25.939000')
+            
+            async for hist_message in message.channel.history(limit=None, after=creation_time):
+                if hist_message.content == photo_gif and hist_message.author.id == self.user.id:
+                    await hist_message.delete()
+            
+            await message.channel.send(photo_gif)
+            
+            start = monotonic()
+            print("Taking a snapshot...")
+            
+            with open('res/{0}.txt'.format(message.channel), 'w') as message_log:
+                history = message.channel.history(
+                    limit=None,
+                    before=creation_time,
+                    oldest_first=True
+                )
+                async for hist_message in history:
+                    if hist_message.content == "":
+                        continue
+                    if hist_message.author.id == self.user.id:
+                        continue
+                    
+                    log_message = '{0}\n{1}\n\n'.format(
+                        hist_message.author.id,
+                        hist_message.content. \
+                            replace('\\', '\\\\'). \
+                            replace('\n', '\\n')
+                    )
+                    message_log.write(log_message)
+                message_log.close()
+            
+            print("Snapshot done in {0:.2f}s!".format(monotonic() - start))
 
 
     async def on_ready(self):
