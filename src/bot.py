@@ -109,12 +109,12 @@ class CarlitoBot(discord.Client):
                 for i in range(len(other_words)):
                     main_words.insert(1 + int(i / word_ratio), other_words[i])
                 await message.channel.send(' '.join(main_words))
-                print('Sent a mashup message on #{0}'.format(message.channel))
+                print('Sent a mashup message on #{0} ({1})'.format(message.channel, message.guild))
         elif self.user.mentioned_in(message):
             async with message.channel.typing():
                 old_message = await pick_message(message.channel, ignored_id=self.user.id)
                 await message.channel.send(old_message.content)
-                print('Sent a response message on #{0}`'.format(message.channel))
+                print('Sent a response message on #{0} ({1})'.format(message.channel, message.guild))
 
 
 if __name__ == "__main__":
