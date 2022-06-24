@@ -18,9 +18,10 @@ async def pick_message(channel: discord.TextChannel, ignored_id: int) -> discord
         hist_count = 0
         max_hist_count = randrange(0,5)+1
         async for hist_message in channel.history(limit=101, around=target_datetime+datetime_offset):
-            if hist_message.content != "" and \
-                    hist_message.author.id != ignored_id and \
-                    not hist_message.id in picked_messages:
+            prohibited = hist_message.content != "" and \
+                hist_message.author.id != ignored_id and \
+                not hist_message.id in picked_messages
+            if prohibited:
                 hist_count += 1
             if hist_count == max_hist_count:
                 picked_messages.append(hist_message.id)
@@ -95,7 +96,7 @@ class CarlitoBot(discord.Client):
             return
         if message.channel.slowmode_delay > 0:
             return
-        if message.channel.is_nsfw():
+        if message.channel.is_nsfw() or 'nsfw' in message.channel.name:
             return
 
         await self.handle_command(message)
