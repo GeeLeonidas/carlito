@@ -8,7 +8,7 @@ from time import monotonic
 picked_messages = {}
 def flush_picked_messages():
     with open('res/picked', 'w') as picked_file:
-        for (key, _) in picked_messages:
+        for key in picked_messages.keys():
             picked_file.write(f'{key}\n')
         picked_file.close()
         
