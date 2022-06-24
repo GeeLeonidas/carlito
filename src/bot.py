@@ -6,9 +6,10 @@ from time import monotonic
 
 def pick_datetime() -> dt.datetime:
     day_period = 365
-    return dt.datetime.utcnow() + dt.timedelta(days=randrange(0,int(day_period/2))) - dt.timedelta(days=day_period)
+    return dt.datetime.utcnow() + dt.timedelta(days=randrange(0,int(day_period/4))) - dt.timedelta(days=day_period)
 
 
+picked_messages = []
 async def pick_message(channel: discord.TextChannel, ignored_id: int) -> discord.Message:
     repeat_count = 0
     datetime_offset = dt.timedelta(minutes=0)
@@ -17,9 +18,12 @@ async def pick_message(channel: discord.TextChannel, ignored_id: int) -> discord
         hist_count = 0
         max_hist_count = randrange(0,5)+1
         async for hist_message in channel.history(limit=101, around=target_datetime+datetime_offset):
-            if hist_message.content != "" and hist_message.author.id != ignored_id:
+            if hist_message.content != "" and \
+                    hist_message.author.id != ignored_id and \
+                    not hist_message.id in picked_messages:
                 hist_count += 1
             if hist_count == max_hist_count:
+                picked_messages.append(hist_message.id)
                 return hist_message
         repeat_count += 1
         if repeat_count > 15:
