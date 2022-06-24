@@ -6,7 +6,7 @@ from time import monotonic
 
 def pick_datetime() -> dt.datetime:
     day_period = 365
-    return dt.datetime.utcnow() + dt.timedelta(days=randrange(0,int(day_period/4))) - dt.timedelta(days=day_period)
+    return dt.datetime.utcnow() + dt.timedelta(days=randrange(0,int(day_period*0.75))) - dt.timedelta(days=day_period)
 
 
 picked_messages = []
@@ -100,7 +100,9 @@ class CarlitoBot(discord.Client):
 
         await self.handle_command(message)
         
-        if randrange(0, 75) == 0:
+        if randrange(0, 66) == 0:
+            if randrange(0, 4) == 0:
+                return
             async with message.channel.typing():
                 main = await pick_message(message.channel, ignored_id=self.user.id)
                 other = await pick_message(message.channel, ignored_id=self.user.id)
