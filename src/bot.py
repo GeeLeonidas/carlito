@@ -104,7 +104,8 @@ class CarlitoBot(discord.Client):
 
 
     async def on_message(self, message):
-        if message.author.id == self.user.id:
+        bot_member = message.guild.get_member(self.user.id)
+        if message.channel.permissions_for(bot_member).send_messages:
             return
         if message.author.bot:
             return
