@@ -144,4 +144,4 @@ class CarlitoBot(discord.Client):
 
 if __name__ == "__main__":
     client = CarlitoBot()
-    client.run(environ('TOKEN'))
+    client.run(environ['CARLITO_TOKEN'])
