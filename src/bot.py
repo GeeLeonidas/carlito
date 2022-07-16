@@ -3,6 +3,7 @@ import discord
 from random import randrange, shuffle
 import datetime as dt
 from time import monotonic
+from os import environ
 
 
 picked_messages = {}
@@ -142,10 +143,5 @@ class CarlitoBot(discord.Client):
 
 
 if __name__ == "__main__":
-    token = ''
-    with open('res/token', 'r') as token_file:
-        token = token_file.readlines()[0]
-        token_file.close()
-    
     client = CarlitoBot()
-    client.run(token)
+    client.run(environ('TOKEN'))
