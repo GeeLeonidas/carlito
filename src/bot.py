@@ -6,7 +6,7 @@ from time import monotonic
 from os import environ
 
 
-res_folder = environ['HOME'] + '/.local/share/res'
+res_folder = environ['HOME'] + '/.local/share/carlito/res'
 def res(file: str) -> str:
     return res_folder + '/' + file
 
