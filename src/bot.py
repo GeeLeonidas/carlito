@@ -3,12 +3,12 @@ import discord
 from random import randrange, shuffle
 import datetime as dt
 from time import monotonic
-from os import environ
+from os import environ, makedirs
 
 
-res_folder = environ['HOME'] + '/.local/share/carlito/res'
+carlito_folder = environ['HOME'] + '/.local/share/carlito'
 def res(file: str) -> str:
-    return res_folder + '/' + file
+    return carlito_folder + '/res/' + file
 
 picked_messages = {}
 def flush_picked_messages():
@@ -147,5 +147,6 @@ class CarlitoBot(discord.Client):
 
 
 if __name__ == "__main__":
+    makedirs(carlito_folder + '/res', exist_ok=True)
     client = CarlitoBot()
     client.run(environ['CARLITO_TOKEN'])
