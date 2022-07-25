@@ -6,9 +6,13 @@ from time import monotonic
 from os import environ
 
 
+res_folder = environ['HOME'] + '/.local/share/res'
+def res(file: str) -> str:
+    return res_folder + '/' + file
+
 picked_messages = {}
 def flush_picked_messages():
-    with open('res/picked', 'w') as picked_file:
+    with open(res('picked'), 'w') as picked_file:
         for key in picked_messages.keys():
             picked_file.write(f'{key}\n')
         picked_file.close()
@@ -71,7 +75,7 @@ class CarlitoBot(discord.Client):
             start = monotonic()
             print("Taking a snapshot...")
             
-            with open('res/{0}.txt'.format(message.channel), 'w') as message_log:
+            with open(res('{0}.txt'.format(message.channel)), 'w') as message_log:
                 history = message.channel.history(
                     limit=None,
                     before=creation_time,
@@ -98,7 +102,7 @@ class CarlitoBot(discord.Client):
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
         if exists('res/sent.txt'):
-            with open('res/picked', 'r') as picked_file:
+            with open(res('picked'), 'r') as picked_file:
                 for hash_txt in picked_file.readlines():
                     picked_messages[int(hash_txt)] = True
                 picked_file.close()
