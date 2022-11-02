@@ -2,7 +2,6 @@ from genericpath import exists
 import discord
 from random import randrange, shuffle
 import datetime as dt
-from time import monotonic
 from os import environ, makedirs
 
 
@@ -58,7 +57,7 @@ class CarlitoBot(discord.Client):
 
 
     async def ask_premium(self, channel):
-        channel.send("*This message was hidden from you. For more fun content, please acquire a Carlito Premium membership.*")
+        channel.send('*This message was hidden from you. For more fun content, please acquire a Carlito Premium membership.*')
         print(f'Sent a premium message on #{channel} ({channel.guild})')
 
 
