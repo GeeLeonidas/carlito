@@ -24,28 +24,23 @@ def pick_datetime() -> dt.datetime:
 
 
 async def pick_message(channel: discord.TextChannel, ignored_id: int, add_to_picked_messages=False) -> discord.Message:
-    repeat_count = 0
     datetime_offset = dt.timedelta(minutes=0)
     target_datetime = pick_datetime()
     while True:
         hist_count = 0
-        max_hist_count = randrange(0,5)+1
-        async for hist_message in channel.history(limit=101, around=target_datetime+datetime_offset):
+        max_hist_count = randrange(0,2)+1
+        async for hist_message in channel.history(limit=3, around=target_datetime+datetime_offset):
             message_hash = hash(hist_message.content)
             prohibited = hist_message.content == "" or \
                 hist_message.author.id == ignored_id or \
                 message_hash in picked_messages
-            if not prohibited:
-                hist_count += 1
-            if hist_count == max_hist_count:
+            hist_count += 1
+            if not prohibited and hist_count >= max_hist_count:
                 if add_to_picked_messages:
                     picked_messages[message_hash] = True
                     flush_picked_messages()
-                return hist_message
-        repeat_count += 1
-        if repeat_count > 15:
-            datetime_offset += dt.timedelta(minutes=30)
-            repeat_count = 0
+                return hist_message if hist_message.created_at < (dt.datetime.utcnow() - dt.timedelta(days=85)) else None
+        datetime_offset += dt.timedelta(days=1)
 
 
 class CarlitoBot(discord.Client):
@@ -60,6 +55,11 @@ class CarlitoBot(discord.Client):
                 for hash_txt in picked_file.readlines():
                     picked_messages[int(hash_txt)] = True
                 picked_file.close()
+
+
+    async def ask_premium(self, channel):
+        channel.send("*This message was hidden from you. For more fun content, please acquire a Carlito Premium membership.*")
+        print(f'Sent a premium message on #{channel} ({channel.guild})')
 
 
     async def on_message(self, message):
@@ -82,6 +82,9 @@ class CarlitoBot(discord.Client):
                 main = await pick_message(message.channel, ignored_id=self.user.id)
                 other = await pick_message(message.channel, ignored_id=self.user.id)
                 
+                if main is None or other is None:
+                    await self.ask_premium(message.channel)
+
                 main_words = main.content.split(' ')
                 other_words = other.content.split(' ')
                 shuffle(other_words)
@@ -94,6 +97,10 @@ class CarlitoBot(discord.Client):
         elif self.user.mentioned_in(message):
             async with message.channel.typing():
                 old_message = await pick_message(message.channel, ignored_id=self.user.id, add_to_picked_messages=True)
+
+                if old_message is None:
+                    await self.ask_premium(message.channel)
+
                 await message.channel.send(old_message.content)
                 print(f'Sent a response message on #{message.channel} ({message.guild})')
 
