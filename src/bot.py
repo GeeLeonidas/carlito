@@ -3,6 +3,7 @@ import discord
 from random import randrange, shuffle
 import datetime as dt
 from os import environ, makedirs
+import pickle as pk
 
 
 carlito_folder = environ['HOME'] + '/.local/share/carlito'
@@ -11,10 +12,8 @@ def res(file: str) -> str:
 
 picked_messages = {}
 def flush_picked_messages():
-    with open(res('picked'), 'w') as picked_file:
-        for key in picked_messages.keys():
-            picked_file.write(f'{key}\n')
-        picked_file.close()
+    with open(res('picked'), 'wb') as picked_file:
+        pk.dump(obj=picked_messages, file=picked_file)
         
 
 def pick_datetime() -> dt.datetime:
@@ -38,22 +37,25 @@ async def pick_message(channel: discord.TextChannel, ignored_id: int, add_to_pic
                 if add_to_picked_messages:
                     picked_messages[message_hash] = True
                     flush_picked_messages()
-                return hist_message if hist_message.created_at < (dt.datetime.utcnow() - dt.timedelta(days=85)) else None
+                limit = (dt.datetime.utcnow() - dt.timedelta(days=85))
+                if hist_message.created_at.timestamp() < limit.timestamp():
+                    return hist_message
+                else:
+                    return None # Message is too new
         datetime_offset += dt.timedelta(days=1)
 
 
 class CarlitoBot(discord.Client):
     def __init__(self, *, loop=None, **options):
-        super().__init__(loop=loop, **options)
+        intents = discord.Intents().default()
+        super().__init__(loop=loop, intents=intents, **options)
 
 
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
         if exists('res/sent.txt'):
-            with open(res('picked'), 'r') as picked_file:
-                for hash_txt in picked_file.readlines():
-                    picked_messages[int(hash_txt)] = True
-                picked_file.close()
+            with open(res('picked'), 'rb') as picked_file:
+                picked_messages = pk.load(file=picked_file)
 
 
     async def ask_premium(self, channel):
