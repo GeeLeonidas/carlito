@@ -109,4 +109,4 @@ class CarlitoBot(discord.Client):
 if __name__ == "__main__":
     makedirs(carlito_folder + '/res', exist_ok=True)
     client = CarlitoBot()
-    client.run(environ['CARLITO_TOKEN'])
+    client.run(environ['CARLITO_TOKEN'], log_handler=None)
