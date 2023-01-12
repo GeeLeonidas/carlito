@@ -1,7 +1,7 @@
 import dimscord
 export dimscord
 
-import std / [asyncdispatch, os, times, tables, random]
+import std / [asyncdispatch, os, times, random]
 
 const
   DiscordEpoch* = 1_420_070_400_000
