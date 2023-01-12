@@ -5,6 +5,7 @@ import std / [asyncdispatch, os, re, options, tables, random, strformat]
 dotenv.load()
 assert os.existsEnv("CARLITO_TOKEN"), "Env variable `CARLITO_TOKEN` is missing!"
 let discord* = newDiscordClient(os.getEnv("CARLITO_TOKEN"))
+var currentMemberTable*: Table[string, Member]
 
 proc onReady(s: Shard, r: Ready) {.event(discord).} =
   if fileExists(DataDir / "guild_ids"):

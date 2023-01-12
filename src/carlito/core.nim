@@ -11,8 +11,6 @@ const
     else:
       os.getEnv("HOME") / ".local/share/carlito"
 
-var currentMemberTable*: Table[string, Member]
-
 converter toApi*(s: Shard): RestApi = s.client.api
 
 proc mentionsUser*(m: Message, user: User): bool =
