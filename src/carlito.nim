@@ -10,26 +10,37 @@ var currentMemberTable*: Table[string, Member]
 
 proc onReady(s: Shard, r: Ready) {.event(discord).} =
   if fileExists(DataDir / "guild_ids"):
-    let guildIds = readFile(DataDir / "guild_ids").split(re"\n")
+    let
+      api = s.client.api
+      guildIds = readFile(DataDir / "guild_ids").split(re"\n")
+
     for guildId in guildIds:
       if guildId == "": continue
       try:
-        currentMemberTable[guildId] = await s.getGuildMember(guildId, s.user.id)
+        currentMemberTable[guildId] = await api.getGuildMember(guildId, s.user.id)
       except:
         continue
   echo r.user, " is ready!"
 
 proc messageCreate(s: Shard, m: Message) {.event(discord).} =
-  if m.author.bot: return
+  if m.author.bot:
+    return
 
   let
-    guildId = try: m.guildId.get() except UnpackDefect: return
+    api = s.client.api
+    guildId =
+      try:
+        m.guildId.get()
+      except UnpackDefect:
+        return
     channel = s.cache.guildChannels[m.channelId]
-  if channel.nsfw or channel.name.match(re"(n|N)(s|S)(f|F)(w|W)"): return
-  if channel.rate_limit_per_user.get() > 0: return
+  
+  if channel.rate_limit_per_user.get() > 0 or
+     channel.nsfw or channel.name.match(re"(n|N)(s|S)(f|F)(w|W)"):
+    return
 
   if not currentMemberTable.hasKey(guildId):
-    currentMemberTable[guildId] = await s.getGuildMember(guildId, s.user.id)
+    currentMemberTable[guildId] = await api.getGuildMember(guildId, s.user.id)
     var guildIds: string
     for guildId in s.cache.guilds.keys:
       guildIds.add(guildId & '\n')
@@ -40,17 +51,27 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
     member = currentMemberTable[guildId]
     permsGuild = guild.computePerms(member)
     permsChannel = guild.computePerms(member, channel)
-  if permSendMessages in (permsGuild.denied + permsChannel.denied): return
-  if permReadMessageHistory in (permsGuild.denied + permsChannel.denied): return
+
+  if permSendMessages in (permsGuild.denied + permsChannel.denied) or
+     permReadMessageHistory in (permsGuild.denied + permsChannel.denied):
+    return
 
   let wasMentioned = m.mentionsUser(s.user)
   if rand(50) == 0 or wasMentioned: # 2% chance
-    await s.triggerTypingIndicator(m.channelId)
+    await api.triggerTypingIndicator(m.channelId)
     let
       pick = await s.pickContent(m.channelId)
-      content = if pick != "": pick else: pickPremiumContent()
-      messageBegin = if wasMentioned: "Response" else: "Message"
-    discard await s.sendMessage(m.channelId, content)
+      content =
+        if pick == "":
+          pickPremiumContent()
+        else:
+          pick
+      messageBegin =
+        if wasMentioned:
+          "Response"
+        else:
+          "Message"
+    discard await api.sendMessage(m.channelId, content)
     echo fmt"{messageBegin} sent to #{channel.name} ({guild.name})"
 
 randomize()

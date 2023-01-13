@@ -11,20 +11,18 @@ const
     else:
       os.getEnv("HOME") / ".local/share/carlito"
 
-converter toApi*(s: Shard): RestApi = s.client.api
-
 proc mentionsUser*(m: Message, user: User): bool =
   for mentionUser in m.mentionUsers:
     if user.id == mentionUser.id:
       return true
   return false
 
-proc toSnowflake*(time: Time; bit = false): int64 =
+proc toSnowflake*(time: Time; lowerBitsState = false): int64 =
   let
     unixTime = time.toUnixFloat()
     discordMillis = int64(1000 * unixTime) - DiscordEpoch
-    lowerBits = if bit: (1 shl 22) - 1 else: 0
-  return (discordMillis shl 22) + lowerbits
+    lowerBits = lowerBitsState.ord * ((1 shl 22) - 1)
+  return (discordMillis shl 22) + lowerBits
 
 proc pickPremiumContent*(): string =
   const PremiumContent = [
@@ -48,10 +46,12 @@ proc pickContent*(s: Shard, channelId: string): Future[string] {.async.} =
         limit = 4,
         around = $selectedSnowflake,
       )
-    if len(messages) == 0: continue
+    if len(messages) == 0:
+      continue
     for j in 0..high(messages):
       let m = messages[j]
-      if m.author.id == s.user.id: continue
-      if m.mentionsUser(s.user): continue
-      if m.content == "": continue
+      if m.content == "" or
+         m.mentionsUser(s.user) or
+         m.author.id == s.user.id:
+        continue
       return m.content
