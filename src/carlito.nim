@@ -1,6 +1,6 @@
 import dotenv
 import carlito / core
-import std / [asyncdispatch, os, re, options, tables, random, strformat]
+import std / [asyncdispatch, os, re, options, tables, sets, random, strformat]
 
 if os.fileExists(".env"):
   dotenv.load()
@@ -33,7 +33,11 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
         m.guildId.get()
       except UnpackDefect:
         return
-    channel = s.cache.guildChannels[m.channelId]
+    channel =
+      if s.cache.guildChannels.hasKey(m.channelId):
+        s.cache.guildChannels[m.channelId]
+      else:
+        (await api.getChannel(m.channelId))[0].get()
   
   if channel.rate_limit_per_user.get() > 0 or
      channel.nsfw or channel.name.match(re"(n|N)(s|S)(f|F)(w|W)"):
