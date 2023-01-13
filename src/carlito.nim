@@ -1,6 +1,6 @@
 import dotenv
 import carlito / core
-import std / [asyncdispatch, os, re, options, tables, sets, random, strformat]
+import std / [asyncdispatch, os, re, options, tables, random, strformat]
 
 if os.fileExists(".env"):
   dotenv.load()
