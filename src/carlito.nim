@@ -2,7 +2,8 @@ import dotenv
 import carlito / core
 import std / [asyncdispatch, os, re, options, tables, random, strformat]
 
-dotenv.load()
+if os.fileExists(".env"):
+  dotenv.load()
 assert os.existsEnv("CARLITO_TOKEN"), "Env variable `CARLITO_TOKEN` is missing!"
 let discord* = newDiscordClient(os.getEnv("CARLITO_TOKEN"))
 var currentMemberTable*: Table[string, Member]
