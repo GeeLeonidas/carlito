@@ -24,6 +24,9 @@ proc toSnowflake*(time: Time; lowerBitsState = false): int64 =
     lowerBits = lowerBitsState.ord * ((1 shl 22) - 1)
   return (discordMillis shl 22) + lowerBits
 
+proc pickStream*(): string =
+  "https://youtu.be/nis_k3FktEk"
+
 proc pickPremiumContent*(): string =
   const PremiumContent = [
     "*This message was hidden from you. For more fun content, please acquire a Carlito Premium membership.*",

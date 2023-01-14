@@ -44,11 +44,7 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
 
   let
     api = s.client.api
-    guildId =
-      try:
-        m.guildId.get()
-      except UnpackDefect:
-        return
+    guildId = try: m.guildId.get() except UnpackDefect: return
     channel =
       if s.cache.guildChannels.hasKey(m.channelId):
         s.cache.guildChannels[m.channelId]
@@ -87,9 +83,10 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
       sessionReadyTable[guildId] = false
       while not sessionReadyTable[guildId]:
         await sleepAsync 200
-      let vc = s.voiceConnections[guildId]
-      const DebugLink = "https://youtu.be/nis_k3FktEk"
-      await vc.playYTDL(DebugLink, command="yt-dlp")
+      let
+        vc = s.voiceConnections[guildId]
+        streamUrl = pickStream()
+      await vc.playYTDL(streamUrl, command="yt-dlp")
       return
     await api.triggerTypingIndicator(m.channelId)
     let
