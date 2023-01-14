@@ -83,10 +83,9 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
       )
       sessionReadyTable[guildId] = false
       while true:
+        let streamCode = pickStreamCode()
         try:
-          let
-            streamCode = pickStreamCode()
-            voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
+          let voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
           echo fmt"Playing https://youtu.be/{streamCode} at {voiceChannel.name} ({guild.name})"
           while not sessionReadyTable[guildId]:
             await sleepAsync 200
@@ -103,8 +102,8 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
           await stream
           return
         except IOError:
-          echo "Couldn't play the stream (IOError), retrying..."
-          continue
+            echo fmt"Couldn't play https://youtu.be/{streamCode} (IOError), retrying..."
+            continue
     await api.triggerTypingIndicator(m.channelId)
     let
       pick = await s.pickContent(m.channelId)
