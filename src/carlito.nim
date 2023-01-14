@@ -82,24 +82,29 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
         selfDeaf = true
       )
       sessionReadyTable[guildId] = false
-      let
-        streamCode = pickStreamCode()
-        voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
-      echo fmt"Playing https://youtu.be/{streamCode} at {voiceChannel.name} ({guild.name})"
-      while not sessionReadyTable[guildId]:
-        await sleepAsync 200
-      let
-        vc = s.voiceConnections[guildId]
-        streamUrl = fmt"https://youtube.com/embed/{streamCode}"
-      var
-        elapsedMillis: int
-        stream = vc.playYTDL(streamUrl, command="yt-dlp")
-      while elapsedMillis < 10_000 and not stream.finished:
-        await sleepAsync 200
-        elapsedMillis += 200
-      vc.stopped = true
-      await stream
-      return
+      while true:
+        try:
+          let
+            streamCode = pickStreamCode()
+            voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
+          echo fmt"Playing https://youtu.be/{streamCode} at {voiceChannel.name} ({guild.name})"
+          while not sessionReadyTable[guildId]:
+            await sleepAsync 200
+          let
+            vc = s.voiceConnections[guildId]
+            streamUrl = fmt"https://youtube.com/embed/{streamCode}"
+          var
+            elapsedMillis: int
+            stream = vc.playYTDL(streamUrl, command="yt-dlp")
+          while elapsedMillis < 10_000 and not stream.finished:
+            await sleepAsync 200
+            elapsedMillis += 200
+          vc.stopped = true
+          await stream
+          return
+        except IOError:
+          echo "Couldn't play the stream (IOError), retrying..."
+          continue
     await api.triggerTypingIndicator(m.channelId)
     let
       pick = await s.pickContent(m.channelId)
