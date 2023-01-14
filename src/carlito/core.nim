@@ -1,7 +1,9 @@
 import dimscord
 export dimscord
 
-import std / [asyncdispatch, os, times, random]
+import puppy
+
+import std / [asyncdispatch, os, times, random, re]
 
 const
   DiscordEpoch* = 1_420_070_400_000
@@ -24,8 +26,14 @@ proc toSnowflake*(time: Time; lowerBitsState = false): int64 =
     lowerBits = lowerBitsState.ord * ((1 shl 22) - 1)
   return (discordMillis shl 22) + lowerBits
 
-proc pickStream*(): string =
-  "https://youtu.be/nis_k3FktEk"
+proc pickStreamCode*(): string =
+  result = "wDgQdr8ZkTw"
+  let
+    pattern = re"https:\/\/(?:www\.|)youtube\.com\/(?:[a-z]+)\/([^\?\/]+)"
+    petit = fetch("https://petittube.com/")
+  var youtubeMatches: array[8, string]
+  if petit.find(pattern, youtubeMatches) != -1:
+    return youtubeMatches[0]
 
 proc pickPremiumContent*(): string =
   const PremiumContent = [

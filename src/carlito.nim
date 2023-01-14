@@ -81,11 +81,12 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
         selfDeaf = true
       )
       sessionReadyTable[guildId] = false
+      let streamCode = pickStreamCode()
       while not sessionReadyTable[guildId]:
         await sleepAsync 200
       let
         vc = s.voiceConnections[guildId]
-        streamUrl = pickStream()
+        streamUrl = fmt"https://youtube.com/embed/{streamCode}"
       var
         elapsedMillis: int
         stream = vc.playYTDL(streamUrl, command="yt-dlp")
