@@ -17,8 +17,9 @@ proc voiceServerUpdate(s: Shard, g: Guild, token: string,
   vc.voiceEvents.onReady = proc (v: VoiceClient) {.async.} =
     sessionReadyTable[g.id] = true
 
-  vc.voiceEvents.onSpeaking = proc (v: VoiceClient, s: bool) {.async.} =
-    discard
+  vc.voiceEvents.onSpeaking = proc (v: VoiceClient, state: bool) {.async.} =
+    if not state and v.sent == 0:
+      await s.voiceStateUpdate(g.id)
 
   await vc.startSession()
 
@@ -32,6 +33,7 @@ proc onReady(s: Shard, r: Ready) {.event(discord).} =
       if guildId == "": continue
       try:
         currentMemberTable[guildId] = await api.getGuildMember(guildId, s.user.id)
+        await s.voiceStateUpdate(guildId)
       except:
         continue
   echo r.user, " is ready!"
