@@ -86,7 +86,14 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
       let
         vc = s.voiceConnections[guildId]
         streamUrl = pickStream()
-      await vc.playYTDL(streamUrl, command="yt-dlp")
+      var
+        elapsedMillis: int
+        stream = vc.playYTDL(streamUrl, command="yt-dlp")
+      while elapsedMillis < 10_000 and not stream.finished:
+        await sleepAsync 200
+        elapsedMillis += 200
+      vc.stopped = true
+      await stream
       return
     await api.triggerTypingIndicator(m.channelId)
     let
