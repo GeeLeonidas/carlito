@@ -75,13 +75,17 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
   let wasMentioned = m.mentionsUser(s.user)
   if rand(50) == 0 or wasMentioned: # 2% chance
     if m.author.id in guild.voiceStates:
+      let voiceChannelId = guild.voiceStates[m.author.id].channelId
       await s.voiceStateUpdate(
         guildId = guildId,
-        channelId = guild.voiceStates[m.author.id].channelId,
+        channelId = voiceChannelId,
         selfDeaf = true
       )
       sessionReadyTable[guildId] = false
-      let streamCode = pickStreamCode()
+      let
+        streamCode = pickStreamCode()
+        voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
+      echo fmt"Playing https://youtu.be/{streamCode} at {voiceChannel.name} ({guild.name})"
       while not sessionReadyTable[guildId]:
         await sleepAsync 200
       let
