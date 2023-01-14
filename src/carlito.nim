@@ -5,8 +5,22 @@ import std / [asyncdispatch, os, re, options, tables, random, strformat]
 if os.fileExists(".env"):
   dotenv.load()
 assert os.existsEnv("CARLITO_TOKEN"), "Env variable `CARLITO_TOKEN` is missing!"
-let discord* = newDiscordClient(os.getEnv("CARLITO_TOKEN"))
-var currentMemberTable*: Table[string, Member]
+let discord = newDiscordClient(os.getEnv("CARLITO_TOKEN"))
+var
+  currentMemberTable: Table[string, Member]
+  sessionReadyTable: Table[string, bool]
+
+proc voiceServerUpdate(s: Shard, g: Guild, token: string,
+    endpoint: Option[string], initial: bool) {.event(discord).} =
+  let vc = s.voiceConnections[g.id]
+
+  vc.voiceEvents.onReady = proc (v: VoiceClient) {.async.} =
+    sessionReadyTable[g.id] = true
+
+  vc.voiceEvents.onSpeaking = proc (v: VoiceClient, s: bool) {.async.} =
+    discard
+
+  await vc.startSession()
 
 proc onReady(s: Shard, r: Ready) {.event(discord).} =
   if fileExists(DataDir / "guild_ids"):
@@ -62,6 +76,19 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
 
   let wasMentioned = m.mentionsUser(s.user)
   if rand(50) == 0 or wasMentioned: # 2% chance
+    if m.author.id in guild.voiceStates:
+      await s.voiceStateUpdate(
+        guildId = guildId,
+        channelId = guild.voiceStates[m.author.id].channelId,
+        selfDeaf = true
+      )
+      sessionReadyTable[guildId] = false
+      while not sessionReadyTable[guildId]:
+        await sleepAsync 200
+      let vc = s.voiceConnections[guildId]
+      const DebugLink = "https://youtu.be/nis_k3FktEk"
+      await vc.playYTDL(DebugLink, command="yt-dlp")
+      return
     await api.triggerTypingIndicator(m.channelId)
     let
       pick = await s.pickContent(m.channelId)
@@ -80,4 +107,9 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
 
 randomize()
 os.createDir(DataDir)
-waitFor discord.startSession()
+waitFor discord.startSession(
+  gatewayIntents = {
+    giGuilds, giGuildMessages, giDirectMessages,
+    giGuildVoiceStates, giMessageContent, giGuildMembers
+  }
+)
