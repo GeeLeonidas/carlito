@@ -73,37 +73,37 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
     return
 
   let wasMentioned = m.mentionsUser(s.user)
-  if rand(50) == 0 or wasMentioned: # 2% chance
-    if m.author.id in guild.voiceStates:
-      let voiceChannelId = guild.voiceStates[m.author.id].channelId
-      await s.voiceStateUpdate(
-        guildId = guildId,
-        channelId = voiceChannelId,
-        selfDeaf = true
-      )
-      sessionReadyTable[guildId] = false
-      while true:
-        let streamCode = pickStreamCode()
-        try:
-          let voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
-          echo fmt"Playing https://youtu.be/{streamCode} at {voiceChannel.name} ({guild.name})"
-          while not sessionReadyTable[guildId]:
-            await sleepAsync 200
-          let
-            vc = s.voiceConnections[guildId]
-            streamUrl = fmt"https://youtube.com/embed/{streamCode}"
-          var
-            elapsedMillis: int
-            stream = vc.playYTDL(streamUrl, command="yt-dlp")
-          while elapsedMillis < 10_000 and not stream.finished:
-            await sleepAsync 200
-            elapsedMillis += 200
-          vc.stopped = true
-          await stream
-          return
-        except IOError:
-            echo fmt"Couldn't play https://youtu.be/{streamCode} (IOError), retrying..."
-            continue
+  if m.author.id in guild.voiceStates and m.content.match(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
+    let voiceChannelId = guild.voiceStates[m.author.id].channelId
+    await s.voiceStateUpdate(
+      guildId = guildId,
+      channelId = voiceChannelId,
+      selfDeaf = true
+    )
+    sessionReadyTable[guildId] = false
+    while true:
+      let streamCode = pickStreamCode()
+      try:
+        let voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
+        echo fmt"Playing https://youtu.be/{streamCode} at {voiceChannel.name} ({guild.name})"
+        while not sessionReadyTable[guildId]:
+          await sleepAsync 200
+        let
+          vc = s.voiceConnections[guildId]
+          streamUrl = fmt"https://youtube.com/embed/{streamCode}"
+        var
+          elapsedMillis: int
+          stream = vc.playYTDL(streamUrl, command="yt-dlp")
+        while elapsedMillis < 10_000 and not stream.finished:
+          await sleepAsync 200
+          elapsedMillis += 200
+        vc.stopped = true
+        await stream
+        return
+      except IOError:
+          echo fmt"Couldn't play https://youtu.be/{streamCode} (IOError), retrying..."
+          continue
+  elif wasMentioned or rand(50) == 0: # 2% chance
     await api.triggerTypingIndicator(m.channelId)
     let
       pick = await s.pickContent(m.channelId)

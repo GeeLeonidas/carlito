@@ -63,6 +63,7 @@ proc pickContent*(s: Shard, channelId: string): Future[string] {.async.} =
       let m = messages[j]
       if m.content == "" or
          m.mentionsUser(s.user) or
-         m.author.id == s.user.id:
+         m.author.id == s.user.id or
+         m.content.match(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
         continue
       return m.content
