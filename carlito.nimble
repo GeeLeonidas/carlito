@@ -12,6 +12,6 @@ bin           = @["carlito"]
 # Dependencies
 
 requires "nim >= 1.6.0"
-requires "dimscord >= 1.4.0"
+requires "dimscord#head"
 requires "dotenv >= 2.0.0"
 requires "puppy >= 2.0.0"
