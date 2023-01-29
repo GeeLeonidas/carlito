@@ -24,6 +24,7 @@ RUN apk add --no-cache ffmpeg
 RUN apk add --no-cache pcre
 RUN apk add --no-cache curl
 RUN apk add --no-cache opus
+RUN apk upgrade --no-cache
 
 COPY --from=build /repo/bin/carlito /usr/bin
 ENTRYPOINT [ "/usr/bin/carlito" ]
