@@ -32,7 +32,7 @@ proc pickStreamCode*(): string =
     pattern = re"https:\/\/(?:www\.|)youtube\.com\/(?:[a-z]+)\/([^\?\/]+)"
     petit = fetch("https://petittube.com/")
   var youtubeMatches: array[8, string]
-  if petit.find(pattern, youtubeMatches) != -1:
+  if petit.find(pattern, youtubeMatches) >= 0:
     return youtubeMatches[0]
 
 proc pickPremiumContent*(): string =
