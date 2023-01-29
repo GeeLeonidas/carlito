@@ -52,7 +52,7 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
         (await api.getChannel(m.channelId))[0].get()
   
   if channel.rate_limit_per_user.get() > 0 or
-     channel.nsfw or channel.name.match(re"(n|N)(s|S)(f|F)(w|W)"):
+     channel.nsfw or channel.name.contains(re"(n|N)(s|S)(f|F)(w|W)"):
     return
 
   if not currentMemberTable.hasKey(guildId):
@@ -73,7 +73,7 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
     return
 
   let wasMentioned = m.mentionsUser(s.user)
-  if m.author.id in guild.voiceStates and m.content.match(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
+  if m.author.id in guild.voiceStates and m.content.contains(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
     let voiceChannelId = guild.voiceStates[m.author.id].channelId
     await s.voiceStateUpdate(
       guildId = guildId,
