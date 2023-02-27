@@ -12,7 +12,7 @@ RUN apk add binutils
 RUN apk add nimble
 RUN apk add git
 
-RUN git clone --depth 1 --branch v0.2.5 https://github.com/GeeLeonidas/carlito /repo
+RUN git clone --depth 1 --branch v0.3.0 https://github.com/GeeLeonidas/carlito /repo
 WORKDIR /repo
 RUN nimble refresh -y
 RUN nimble build -d:release
