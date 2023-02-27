@@ -1,6 +1,6 @@
 import dotenv
 import carlito / core
-import std / [asyncdispatch, os, re, options, tables, random, strformat]
+import std / [asyncdispatch, os, re, options, tables, random, strformat, sugar]
 
 if os.fileExists(".env"):
   dotenv.load()
@@ -9,6 +9,7 @@ let discord = newDiscordClient(os.getEnv("CARLITO_TOKEN"))
 var
   currentMemberTable: Table[string, Member]
   sessionReadyTable: Table[string, bool]
+  userCooldown: Table[string, int]
 
 proc voiceServerUpdate(s: Shard, g: Guild, token: string,
     endpoint: Option[string], initial: bool) {.event(discord).} =
@@ -38,6 +39,14 @@ proc onReady(s: Shard, r: Ready) {.event(discord).} =
       except:
         continue
   echo r.user, " is ready!"
+  while true:
+    let keys = collect:
+      for key in userCooldown.keys: key
+    for key in keys:
+      dec userCooldown[key]
+      if userCooldown[key] <= 0:
+        userCooldown.del(key)
+    await sleepAsync 1000
 
 proc messageCreate(s: Shard, m: Message) {.event(discord).} =
   if m.author.bot:
@@ -108,6 +117,12 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
         continue
     sessionReadyTable[guildId] = false
   elif wasMentioned or rand(50) == 0: # 2% chance
+    if userCooldown.getOrDefault(m.author.id) > 0:
+      if not wasMentioned:
+        return
+    else:
+      if not wasMentioned:
+        userCooldown[m.author.id] = 300
     await api.triggerTypingIndicator(m.channelId)
     let
       pick = await s.pickContent(m.channelId)
