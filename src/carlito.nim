@@ -104,8 +104,9 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
         await stream
         return
       except IOError:
-          echo fmt"Couldn't play https://youtu.be/{streamCode} (IOError), retrying..."
-          continue
+        echo fmt"Couldn't play https://youtu.be/{streamCode} (IOError), retrying..."
+        continue
+    sessionReadyTable[guildId] = false
   elif wasMentioned or rand(50) == 0: # 2% chance
     await api.triggerTypingIndicator(m.channelId)
     let
