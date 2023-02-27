@@ -12,6 +12,28 @@ const
       os.getEnv("APPDATA") / "carlito"
     else:
       os.getEnv("HOME") / ".local/share/carlito"
+  DomainWhitelist* = [
+    "youtube.com",
+    "twitch.tv",
+    "tenor.com",
+    "reddit.com",
+    "twitter.com",
+    "fxtwitter.com",
+    "vxtwitter.com"
+  ]
+
+proc hasUnsafeDomains(content: string): bool =
+  let pattern = re"https:\/\/(?:.+\.|)(\w+\.\w+)(?:\s|\/|)"
+  var domainMatches: array[9, string]
+  if content.find(pattern, domainMatches) >= 0:
+    if domainMatches[domainMatches.high] != "":
+      return true
+    for i in 0 ..< domainMatches.high:
+      if domainMatches[i] == "":
+        break
+      if DomainWhitelist.contains(domainMatches[i]):
+        continue
+      return true
 
 proc mentionsUser*(m: Message, user: User): bool =
   for mentionUser in m.mentionUsers:
@@ -64,6 +86,9 @@ proc pickContent*(s: Shard, channelId: string): Future[string] {.async.} =
       if m.content == "" or
          m.mentionsUser(s.user) or
          m.author.id == s.user.id or
-         m.content.match(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
+         m.content.hasUnsafeDomains() or
+         m.content.match(re"(p|P)(e|E)(t|T)(i|I)(t|T)") or
+         m.content.match(re"(c|C)(a|A)(r|R)(l|L)(i|I)(t|T)(o|O)") or
+         (selectedDateTime + initTimeInterval(days = 1)).toTime() < timestamp(m.id):
         continue
       return m.content
