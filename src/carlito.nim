@@ -74,6 +74,8 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
 
   let wasMentioned = m.mentionsUser(s.user)
   if m.author.id in guild.voiceStates and m.content.contains(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
+    if sessionReadyTable.getOrDefault(guildId):
+      return
     let voiceChannelId = guild.voiceStates[m.author.id].channelId
     await s.voiceStateUpdate(
       guildId = guildId,
@@ -81,7 +83,7 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
       selfDeaf = true
     )
     sessionReadyTable[guildId] = false
-    while true:
+    for tries in 1..5:
       let streamCode = pickStreamCode()
       try:
         let voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
