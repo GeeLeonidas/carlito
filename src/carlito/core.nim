@@ -87,6 +87,7 @@ proc pickContent*(s: Shard, channelId: string): Future[string] {.async.} =
          m.mentionsUser(s.user) or
          m.author.id == s.user.id or
          m.content.hasUnsafeDomains() or
+         selectedDateTime.toTime() > timestamp(m.id) or 
          m.content.match(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
         continue
       return m.content
