@@ -19,6 +19,7 @@ proc voiceServerUpdate(s: Shard, g: Guild, token: string,
 
   vc.voiceEvents.onSpeaking = proc (v: VoiceClient, state: bool) {.async.} =
     if not state and v.sent == 0:
+      sessionReadyTable[g.id] = false
       await s.voiceStateUpdate(g.id)
 
   await vc.startSession()
