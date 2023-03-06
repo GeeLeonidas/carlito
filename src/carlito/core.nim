@@ -63,7 +63,10 @@ proc pickPremiumContent*(): string =
   const PremiumContent = [
     "*This message was hidden from you. For more fun content, please acquire a Carlito Premium membership.*",
     "*Do you wish you could see more Carlito stuff? Unlock it now with a Carlito Season Pass\\™!*",
-    "https://tenor.com/view/fire-writing-gif-24533171"
+    "https://web.archive.org/web/20130301115921/http://www.clubpenguin.com/",
+    "https://tenor.com/view/fire-writing-gif-24533171",
+    "https://tenor.com/view/troll-trolled-trollge-troll-success-gif-22597471",
+    "https://tenor.com/view/atumalaca-gif-24891113"
   ]
   return sample(PremiumContent)
 
