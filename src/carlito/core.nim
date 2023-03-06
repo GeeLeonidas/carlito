@@ -14,8 +14,10 @@ const
       os.getEnv("HOME") / ".local/share/carlito"
   DomainWhitelist* = [
     "youtube.com",
+    "youtu.be",
     "twitch.tv",
     "tenor.com",
+    "tenor.co",
     "reddit.com",
     "twitter.com",
     "fxtwitter.com",
