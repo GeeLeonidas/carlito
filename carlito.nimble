@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.3.0"
+version       = "0.3.1"
 author        = "Guilherme Leoi"
 description   = "Discord Bot that randomly fetches messages from a channel and re-sends them in different ways"
 license       = "GPL-3.0-only"
