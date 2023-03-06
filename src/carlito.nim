@@ -74,6 +74,7 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
 
   let
     guild = s.cache.guilds[guildId]
+  #[ TODO: Figure out why perm checking doesn't work  
     member = currentMemberTable[guildId]
     permsGuild = guild.computePerms(member)
     permsChannel = guild.computePerms(member, channel)
@@ -82,6 +83,7 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
     return
   if permReadMessageHistory.violates(permsGuild, permsChannel):
     return
+  ]#
 
   let wasMentioned = m.mentionsUser(s.user)
   if m.author.id in guild.voiceStates and m.content.contains(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
@@ -137,7 +139,11 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
           "Response"
         else:
           "Message"
-    discard await api.sendMessage(m.channelId, content)
+    try:
+      discard await api.sendMessage(m.channelId, content)
+    except RestError:
+      echo fmt"[Error] {messageBegin} wasn't sent to #{channel.name} ({guild.name})"
+      return
     echo fmt"{messageBegin} sent to #{channel.name} ({guild.name})"
 
 randomize()

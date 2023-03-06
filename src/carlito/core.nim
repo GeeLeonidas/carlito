@@ -85,11 +85,14 @@ proc pickContent*(s: Shard, channelId: string): Future[string] {.async.} =
     let
       selectedDateTime = timeAnchor + initTimeInterval(days = sign * i)
       selectedSnowflake = selectedDateTime.toTime().toSnowflake()
-      messages = await s.client.api.getChannelMessages(
-        channelId,
-        limit = 4,
-        around = $selectedSnowflake,
-      )
+      messages = try:
+        await s.client.api.getChannelMessages(
+          channelId,
+          limit = 4,
+          around = $selectedSnowflake,
+        )
+      except:
+        newSeq[Message](0)
     if len(messages) == 0:
       continue
     for j in 0..high(messages):
