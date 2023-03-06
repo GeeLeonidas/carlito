@@ -126,7 +126,15 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
     else:
       if not wasMentioned:
         userCooldown[m.author.id] = 300
-    await api.triggerTypingIndicator(m.channelId)
+    let messageBegin =
+      if wasMentioned:
+        "Response"
+      else:
+        "Message"
+    try:
+      await api.triggerTypingIndicator(m.channelId)
+    except RestError:
+      return
     let
       pick = await s.pickContent(m.channelId)
       content =
@@ -134,16 +142,7 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
           pickPremiumContent()
         else:
           pick
-      messageBegin =
-        if wasMentioned:
-          "Response"
-        else:
-          "Message"
-    try:
-      discard await api.sendMessage(m.channelId, content)
-    except RestError:
-      echo fmt"[Error] {messageBegin} wasn't sent to #{channel.name} ({guild.name})"
-      return
+    discard await api.sendMessage(m.channelId, content)
     echo fmt"{messageBegin} sent to #{channel.name} ({guild.name})"
 
 randomize()
