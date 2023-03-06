@@ -78,8 +78,9 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
     permsGuild = guild.computePerms(member)
     permsChannel = guild.computePerms(member, channel)
 
-  if permSendMessages in (permsGuild.denied + permsChannel.denied) or
-     permReadMessageHistory in (permsGuild.denied + permsChannel.denied):
+  if permSendMessages.violates(permsGuild, permsChannel):
+    return
+  if permReadMessageHistory.violates(permsGuild, permsChannel):
     return
 
   let wasMentioned = m.mentionsUser(s.user)

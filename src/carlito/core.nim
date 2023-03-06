@@ -37,6 +37,12 @@ proc hasUnsafeDomains(content: string): bool =
         continue
       return true
 
+proc violates*(permission: PermissionFlags; permsGuild, permsChannel: PermObj): bool =
+  if permission in permsGuild.denied:
+    return permission notin permsChannel.allowed
+  else:
+    return permission in permsChannel.denied
+
 proc mentionsUser*(m: Message, user: User): bool =
   for mentionUser in m.mentionUsers:
     if user.id == mentionUser.id:
