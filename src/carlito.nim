@@ -8,22 +8,7 @@ assert os.existsEnv("CARLITO_TOKEN"), "Env variable `CARLITO_TOKEN` is missing!"
 let discord = newDiscordClient(os.getEnv("CARLITO_TOKEN"))
 var
   currentMemberTable: Table[string, Member]
-  sessionReadyTable: Table[string, bool]
   userCooldown: Table[string, int]
-
-proc voiceServerUpdate(s: Shard, g: Guild, token: string,
-    endpoint: Option[string], initial: bool) {.event(discord).} =
-  let vc = s.voiceConnections[g.id]
-
-  vc.voiceEvents.onReady = proc (v: VoiceClient) {.async.} =
-    sessionReadyTable[g.id] = true
-
-  vc.voiceEvents.onSpeaking = proc (v: VoiceClient, state: bool) {.async.} =
-    if not state and v.sent == 0:
-      sessionReadyTable[g.id] = false
-      await s.voiceStateUpdate(g.id)
-
-  await vc.startSession()
 
 proc onReady(s: Shard, r: Ready) {.event(discord).} =
   if fileExists(DataDir / "guild_ids"):
@@ -86,45 +71,11 @@ proc messageCreate(s: Shard, m: Message) {.event(discord).} =
   ]#
 
   let wasMentioned = m.mentionsUser(s.user)
-  if m.author.id in guild.voiceStates and m.content.contains(re"(p|P)(e|E)(t|T)(i|I)(t|T)"):
-    if sessionReadyTable.getOrDefault(guildId):
-      return
-    let voiceChannelId = guild.voiceStates[m.author.id].channelId
-    await s.voiceStateUpdate(
-      guildId = guildId,
-      channelId = voiceChannelId,
-      selfDeaf = true
-    )
-    sessionReadyTable[guildId] = false
-    for tries in 1..5:
-      let streamCode = pickStreamCode()
-      try:
-        let voiceChannel = s.cache.guildChannels[voiceChannelId.get()]
-        echo fmt"Playing https://youtu.be/{streamCode} at {voiceChannel.name} ({guild.name})"
-        while not sessionReadyTable[guildId]:
-          await sleepAsync 200
-        let
-          vc = s.voiceConnections[guildId]
-          streamUrl = fmt"https://youtube.com/embed/{streamCode}"
-        var
-          elapsedMillis: int
-          stream = vc.playYTDL(streamUrl, command="yt-dlp")
-        while elapsedMillis < 10_000 and not stream.finished:
-          await sleepAsync 200
-          elapsedMillis += 200
-        vc.stopped = true
-        await stream
+  if wasMentioned or rand(50) == 0: # 2% chance
+    if not wasMentioned:
+      if userCooldown.getOrDefault(m.author.id) > 0:
         return
-      except IOError:
-        echo fmt"Couldn't play https://youtu.be/{streamCode} (IOError), retrying..."
-        continue
-    sessionReadyTable[guildId] = false
-  elif wasMentioned or rand(50) == 0: # 2% chance
-    if userCooldown.getOrDefault(m.author.id) > 0:
-      if not wasMentioned:
-        return
-    else:
-      if not wasMentioned:
+      else:
         userCooldown[m.author.id] = 300
     let messageBegin =
       if wasMentioned:

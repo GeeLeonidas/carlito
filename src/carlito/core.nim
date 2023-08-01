@@ -56,15 +56,6 @@ proc toSnowflake*(time: Time; lowerBitsState = false): int64 =
     lowerBits = lowerBitsState.ord * ((1 shl 22) - 1)
   return (discordMillis shl 22) + lowerBits
 
-proc pickStreamCode*(): string =
-  result = "wDgQdr8ZkTw"
-  let
-    pattern = re"https:\/\/(?:www\.|)youtube\.com\/(?:[a-z]+)\/([^\?\/]+)"
-    petit = fetch("https://petittube.com/")
-  var youtubeMatches: array[8, string]
-  if petit.find(pattern, youtubeMatches) >= 0:
-    return youtubeMatches[0]
-
 proc pickPremiumContent*(): string =
   const PremiumContent = [
     "*This message was hidden from you. For more fun content, please acquire a Carlito Premium membership.*",
