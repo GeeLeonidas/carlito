@@ -1,8 +1,6 @@
 import dimscord
 export dimscord
 
-import puppy
-
 import std / [asyncdispatch, os, times, random, re]
 
 const
